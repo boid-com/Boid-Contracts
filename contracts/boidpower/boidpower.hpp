@@ -27,7 +27,7 @@
 #include <eosio/symbol.hpp>
 #include <eosio/name.hpp>
 
-#include "boidcommon/defines.hpp"
+#include "../boidcommon/defines.hpp"
 
 using namespace eosio;
 using std::string;
@@ -40,6 +40,7 @@ using eosio::microseconds;
 using eosio::time_point;
 
 #define HOUR_MICROSECS 3600e6
+#define ROUND_LENGTH (24 * HOUR_MICROSECS)
 
 /*
 Power rating table for devices
@@ -72,8 +73,7 @@ CONTRACT boidpower : public contract
     
     ACTION updaterating(
       name validator,
-      name account,
-      uint64_t device_key, 
+      string device_name, 
       uint64_t round_start,
       uint64_t round_end,
       float rating,
@@ -101,9 +101,11 @@ CONTRACT boidpower : public contract
 
     ACTION delprotocol(uint64_t protocol_type);
     
-    ACTION deldevice(uint64_t protocol_type, uint64_t devnum);
+    ACTION deldevice(uint64_t protocol_type, string device_name);
 
-    ACTION delaccount(name account, uint64_t devnum);
+    ACTION delrating(name validator, string device_name);
+
+    ACTION delconfig();
 
     template <typename T1, typename T2> typename T1::value_type quant(const T1 &x, T2 q)
     {
@@ -129,6 +131,9 @@ CONTRACT boidpower : public contract
     inline bool valid_round(uint64_t round_start, uint64_t round_end);
     float get_weight(uint64_t device_key, uint64_t type);
     float get_median_rating(uint64_t device_key, uint64_t type, uint64_t* units);
+    bool device_exists(string device_name);
+    void get_device_key(string device_name, bool* exists, uint64_t* device_key);
+    inline uint64_t get_protocol_type(string device_name);
     inline uint64_t get_closest_round(uint64_t t);
     inline uint64_t hash2key(checksum256 hash);
   
@@ -138,6 +143,7 @@ CONTRACT boidpower : public contract
       index : protocol type
      */
     TABLE power {
+      //name                    payer;
       map<uint64_t,float>     ratings;
       map<uint64_t,uint64_t>  units;
       uint64_t                type;
@@ -185,23 +191,6 @@ CONTRACT boidpower : public contract
       >
     > device_t;
 
-    /*!
-      account table
-      scope : owner account
-      index : device_key
-     */   
-    /* 
-    TABLE devaccount {
-      uint64_t          device_key;
-      string            device_name;
-
-      uint64_t        primary_key () const {
-        return device_key;
-      }      
-    };
-    typedef eosio::multi_index<"devaccounts"_n, devaccount> devaccount_t;
-    */
-
 
     TABLE account {
         asset balance;
@@ -224,6 +213,7 @@ CONTRACT boidpower : public contract
       uint64_t                num_outliers;
       uint64_t                num_overwrites;
       uint64_t                num_unpaid_validations;
+
       //microseconds            previous_payout_time;
       
       uint64_t        primary_key() const {
@@ -244,6 +234,8 @@ CONTRACT boidpower : public contract
       float           min_weight;
       name            payout_account;
       float           payout_multiplier;
+      //microseconds    period_1_end;
+      //microseconds    period_2_end;      
       
       uint64_t        primary_key() const {
         return id;
@@ -287,5 +279,6 @@ EOSIO_DISPATCH(boidpower,
   (setpayoutmul)
   (delprotocol)
   (deldevice)
-  (delaccount)
+  (delrating)
+  (delconfig)
 )
