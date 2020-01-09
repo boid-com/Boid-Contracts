@@ -39,7 +39,6 @@ using eosio::check;
 using eosio::microseconds;
 using eosio::time_point;
 
-#define NULL_PROTOCOL 0
 #define HOUR_MICROSECS 3600e6
 
 /*
@@ -78,12 +77,13 @@ CONTRACT boidpower : public contract
       uint64_t round_start,
       uint64_t round_end,
       float rating,
+      uint64_t units,
       uint64_t protocol_type
     );
     
     //ACTION testupdate(name contract, name account, name permission);
     
-    ACTION addprotocol(string protocol_name, string description, string meta, float difficulty);
+    ACTION addprotocol(string protocol_name, string description, float difficulty, string meta);
     
     ACTION newprotdiff(uint64_t protocol_type, float difficulty);
     
@@ -98,6 +98,12 @@ CONTRACT boidpower : public contract
     ACTION setminweight(float min_weight);
 
     ACTION setpayoutmul(float payout_multiplier);
+
+    ACTION delprotocol(uint64_t protocol_type);
+    
+    ACTION deldevice(uint64_t protocol_type, uint64_t devnum);
+
+    ACTION delaccount(name account, uint64_t devnum);
 
     template <typename T1, typename T2> typename T1::value_type quant(const T1 &x, T2 q)
     {
@@ -122,8 +128,9 @@ CONTRACT boidpower : public contract
     );
     inline bool valid_round(uint64_t round_start, uint64_t round_end);
     float get_weight(uint64_t device_key, uint64_t type);
-    float get_median_rating(uint64_t device_key, uint64_t type);
+    float get_median_rating(uint64_t device_key, uint64_t type, uint64_t* units);
     inline uint64_t get_closest_round(uint64_t t);
+    inline uint64_t hash2key(checksum256 hash);
   
     /*!
       power table
@@ -132,6 +139,7 @@ CONTRACT boidpower : public contract
      */
     TABLE power {
       map<uint64_t,float>     ratings;
+      map<uint64_t,uint64_t>  units;
       uint64_t                type;
       microseconds            round_start;
       microseconds            round_end;
@@ -146,11 +154,15 @@ CONTRACT boidpower : public contract
       scope : protocol_type
       index : device_key (sha256 hash + collision_modifier)
       2ary index : sha256 hash of device_name
+      3ary index : device owner value
      */
     TABLE device {
       uint64_t              device_key;
       string                device_name;
+      name                  owner;
       uint64_t              collision_modifier;
+      uint64_t              units;
+
 
       uint64_t        primary_key () const {
         return device_key;
@@ -159,10 +171,17 @@ CONTRACT boidpower : public contract
       checksum256     by_device_name () const {
         return eosio::sha256(device_name.c_str(),device_name.length());
       }
+
+      uint64_t        by_device_owner () const {
+        return owner.value;
+      }
     };
     typedef eosio::multi_index<"devices"_n, device,
       indexed_by<
         "devicename"_n, const_mem_fun<device, checksum256, &device::by_device_name>
+      >,
+      indexed_by<
+        "deviceowner"_n, const_mem_fun<device, uint64_t, &device::by_device_owner>
       >
     > device_t;
 
@@ -170,7 +189,8 @@ CONTRACT boidpower : public contract
       account table
       scope : owner account
       index : device_key
-     */    
+     */   
+    /* 
     TABLE devaccount {
       uint64_t          device_key;
       string            device_name;
@@ -180,6 +200,8 @@ CONTRACT boidpower : public contract
       }      
     };
     typedef eosio::multi_index<"devaccounts"_n, devaccount> devaccount_t;
+    */
+
 
     TABLE account {
         asset balance;
@@ -239,6 +261,7 @@ CONTRACT boidpower : public contract
       string          protocol_name;
       string          description;
       string          meta;
+      //map<string, string> meta;
       float           difficulty; //TODO add ability to change difficulty
       
       uint64_t        primary_key() const {
@@ -254,14 +277,15 @@ EOSIO_DISPATCH(boidpower,
   (delvalidator)
   (addvalprot)
   (updaterating)
-  //(testupdate)
   (addprotocol)
   (newprotdiff)
   (newprotmeta)
   (regdevice)
-  //(regdevprot)
   (regpayacct)
   (payout)
   (setminweight)
   (setpayoutmul)
+  (delprotocol)
+  (deldevice)
+  (delaccount)
 )
