@@ -189,7 +189,9 @@ void boidpower::updaterating(
     reset_validators = true;
   }
 
-  if (reset_validators) reset_ratings(device_key, type);
+  if (reset_validators) {
+  reset_ratings(device_key, type);
+  }
   
   if (add_post_reset) {
     print(
@@ -491,6 +493,7 @@ void boidpower::reset_ratings(uint64_t device_key, uint64_t type)
   if (p_i != p_t.end()) {
     p_t.modify(p_i, same_payer, [&](auto& a) {
       a.ratings.clear();
+      a.units.clear();
       // March forward one round
       a.round_start = microseconds(get_closest_round(a.round_end.count()));
       a.round_end = microseconds(get_closest_round(a.round_end.count() + ROUND_LENGTH));
