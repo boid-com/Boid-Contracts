@@ -5,7 +5,7 @@ async function registerValidator(validator) {
   const authorization = [{actor:"boidcompower", permission:"active"}]
   const account = 'boidcompower'
   const actions = [
-    // {authorization,account:"bo1ddactoken", name:'transfer',data: {from:"boidcompower", to:validator,quantity:"1.0000 BOID",memo:"Welcome to Boid Validators."}},
+    {authorization,account:"boidcomtoken", name:'transfer',data: {from:"boidcompower", to:validator,quantity:"1.0000 BOID",memo:"Welcome to Boid Validators."}},
     {authorization,account, name:'regvalidator',data: {validator}},
     {authorization,account, name:'addvalprot',data: {validator, protocol_type:0,weight:100}},
     {authorization,account, name:'addvalprot',data: {validator, protocol_type:1,weight:100}}
@@ -14,4 +14,4 @@ async function registerValidator(validator) {
   if (result) console.log(result)
 }
 
-registerValidator('boidcompower').catch(el => console.log(el.toString()))
+registerValidator('xya12cvx1m42').catch(el => console.log(el.toString()))

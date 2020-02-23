@@ -18,24 +18,24 @@ async function init(data){
 }
 
 const reports = [
+  {
+    validator:'boidcompower',
+    device_name:'0_1061556_5849210',
+    round_start:39920000000000,
+    round_end:0,
+    rating:1,
+    units:9,
+    protocol_type:0
+  },
   // {
-  //   validator:'boidcompower',
+  //   validator:'john.boid',
   //   device_name:'0_1061556_5849210',
-  //   round_start:259200000000,
+  //   round_start:29920000000000,
   //   round_end:0,
-  //   rating:1,
+  //   rating:10,
   //   units:1,
   //   protocol_type:0
-  // },
-  {
-    validator:'john.boid',
-    device_name:'0_1061556_5849210',
-    round_start:259200000000,
-    round_end:0,
-    rating:10,
-    units:1,
-    protocol_type:0
-  }
+  // }
 ]
 
 for (let report of reports) {

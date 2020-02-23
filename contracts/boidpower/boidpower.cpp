@@ -137,6 +137,8 @@ void boidpower::updaterating(
   
   check(rating > 0,
     "Rating must be greater than 0");
+  check(units > 0,
+    "Units must be greater than 0");
 
   uint64_t closest_round_start = get_closest_round(round_start);
   uint64_t closest_round_end = get_closest_round(round_end);
@@ -348,7 +350,7 @@ void boidpower::payout(name validator, bool registrar_payout)
   auto val_i = val_t.find(validator.value);
   check(val_i != val_t.end(), "Account not registered as validator");
 
-  check(registrar_payout, "Only registrar can issue payouts at this time");
+  //check(registrar_payout, "Only registrar can issue payouts at this time");
   if (registrar_payout) require_auth(cfg.registrar);
   else require_auth(validator);
 

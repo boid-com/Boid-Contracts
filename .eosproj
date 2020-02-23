@@ -3,10 +3,10 @@
   "contract": "boidpower",
   "include": "./contracts",
   "resource": "",
-  "cdt": "v1.6.3",
-  "output": "./build/boidtoken/boidtoken.wasm",
+  "cdt": "v1.7.0",
+  "output": "./build/boidpower/boidpower.wasm",
   "scripts": {
-    "build": "mkdir -p ./build/boidpower && mkdir -p ./build/boidtoken && eosio-cpp -O=s -lto-opt=O2 -abigen -I ./contracts -contract boidpower -o ./build/boidpower/boidpower.wasm contracts/boidpower/boidpower.cpp && cp ./build/boidpower/* ./"
+    "build": "mkdir -p ./build/boidpower && eosio-cpp -O=s -lto-opt=O2 -abigen -I ./contracts -contract boidpower -o ./build/boidpower/boidpower.wasm contracts/boidpower/boidpower.cpp && cp ./build/boidpower/* ./"
   },
   "deploy": {
     "target": "both",
